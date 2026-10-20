@@ -1,19 +1,15 @@
 /**
- * Kịch bản đo đạc Tình huống 3 - Duy trì kết nối (Connection Pooling & Keep-Alive)
- * So sánh số liệu TRƯỚC và SAU khi tối ưu hóa kết nối
+ * Kịch bản đo đạc Tình huống 3 - Duy trì kết nối
  * Chạy bằng lệnh: node test-situation3.js
  */
 
 async function runSituation3() {
   console.log('================================================================');
-  console.log('TIẾN HÀNH THỰC NGHIỆM TÌNH HUỐNG 3 - DUY TRÌ KẾT NỐI THEO ĐỀ BÀI');
+  console.log('TIEN HANH THUC NGHIEM TINH HUONG 3 - DUY TRI KET NOI');
   console.log('================================================================\n');
 
-  // ============================================================================
-  // PHẦN 1: ĐO ĐẠC "SAU KHI SỬA" (CÓ DUY TRÌ KẾT NỐI - KEEP-ALIVE CONNECTION POOL)
-  // ============================================================================
-  console.log('▶️ [BƯỚC 1] ĐO ĐẠC HỆ THỐNG KHI CÓ DUY TRÌ KẾT NỐI (KEEP-ALIVE)');
-  console.log('   (Gửi 200 thanh toán, 10 request đồng thời, 1.000đ/lần)');
+  console.log('[BUOC 1] DO DAC HE THONG KHI CO DUY TRI KET NOI (KEEP-ALIVE)');
+  console.log('   (Gui 200 thanh toan, 10 request dong thoi, 1.000d/lan)');
 
   const statsBefore = await fetch('http://localhost:4002/stats').then(r => r.json());
   const tStartKeepAlive = Date.now();
@@ -34,7 +30,7 @@ async function runSituation3() {
         });
         if (res.status === 201) successKeepAlive++;
       } catch (err) {
-        // bỏ qua
+        // bo qua
       }
     }
   }
@@ -44,19 +40,15 @@ async function runSituation3() {
   const statsAfter = await fetch('http://localhost:4002/stats').then(r => r.json());
   const connectionsUsed = statsAfter.connections - statsBefore.connections;
 
-  console.log(`\n  ✅ Hoàn thành 200 thanh toán trong: ${durationKeepAlive}ms (${(durationKeepAlive / 1000).toFixed(2)}s)`);
-  console.log(`  🔌 Số kết nối TCP ngân hàng phải mở: ${connectionsUsed} (Yêu cầu đề bài: <= 20)`);
-  console.log(`  🎯 Số giao dịch thành công: ${successKeepAlive}/${total}`);
+  console.log(`\n  Hoan thanh 200 thanh toan trong: ${durationKeepAlive}ms (${(durationKeepAlive / 1000).toFixed(2)}s)`);
+  console.log(`  So ket noi TCP ngan hang mo: ${connectionsUsed} (Yeu cau: <= 20)`);
+  console.log(`  So giao dich thanh cong: ${successKeepAlive}/${total}`);
 
-  // ============================================================================
-  // PHẦN 2: KIỂM TRA NHÀN RỖI 6 GIÂY
-  // ============================================================================
-  console.log('\n▶️ [BƯỚC 2] KIỂM TRA KHI HỆ THỐNG NHÀN RỖI 6 GIÂY');
-  console.log('   (Ngân hàng cấu hình keepAliveTimeout = 5s sẽ đóng kết nối cũ nhàn rỗi)');
-  console.log('   ⏳ Đang chờ 6.5 giây...');
+  console.log('\n[BUOC 2] KIEM TRA KHI HE THONG NHAN ROI 6 GIAY');
+  console.log('   Dang cho 6.5 giay...');
   await new Promise(resolve => setTimeout(resolve, 6500));
 
-  console.log('   ⚡ Gửi tiếp 3 yêu cầu thanh toán mới...');
+  console.log('   Gui tiep 3 yeu cau thanh toan moi...');
   let extraSuccess = 0;
   for (let i = 1; i <= 3; i++) {
     const res = await fetch('http://localhost:4001/students/1/payments', {
@@ -66,37 +58,34 @@ async function runSituation3() {
     });
     if (res.status === 201) {
       extraSuccess++;
-      console.log(`     └─ Yêu cầu #${i}: Thành công [201]`);
+      console.log(`     |- Yeu cau #${i}: Thanh cong [201]`);
     }
   }
 
-  // ============================================================================
-  // PHẦN 3: TỔNG HỢP BẢNG SỐ LIỆU ĐỂ BÁO CÁO NHÓM
-  // ============================================================================
   console.log('\n================================================================');
-  console.log('BẢNG TỔNG HỢP SỐ LIỆU BÁO CÁO CHO NHÓM (TRƯỚC VÀ SAU KHI SỬA)');
+  console.log('BANG TONG HOP SO LIEU BAO CAO');
   console.log('================================================================');
   console.table([
     {
-      'Trường hợp': 'TRƯỚC khi sửa (Mỗi request mở 1 kết nối TCP mới)',
-      'Số Request': 200,
-      'Số TCP Connections': '~200 kết nối (lãng phí)',
-      'Thời gian': '~1.800ms - 2.500ms',
-      'Thành công': '200/200'
+      'Truong hop': 'TRUOC khi sua (Moi request mo 1 TCP moi)',
+      'So Request': 200,
+      'So TCP Connections': '~200 ket noi',
+      'Thoi gian': '~1.800ms - 2.500ms',
+      'Thanh cong': '200/200'
     },
     {
-      'Trường hợp': 'SAU khi sửa (Duy trì kết nối Keep-Alive Pool)',
-      'Số Request': 200,
-      'Số TCP Connections': `${connectionsUsed} kết nối (<= 20)`,
-      'Thời gian': `${durationKeepAlive}ms`,
-      'Thành công': `${successKeepAlive}/200`
+      'Truong hop': 'SAU khi sua (Duy tri ket noi Keep-Alive Pool)',
+      'So Request': 200,
+      'So TCP Connections': `${connectionsUsed} ket noi (<= 20)`,
+      'Thoi gian': `${durationKeepAlive}ms`,
+      'Thanh cong': `${successKeepAlive}/200`
     }
   ]);
 
-  console.log('ĐÁNH GIÁ 3 TIÊU CHÍ KẾT QUẢ CẦN ĐẠT:');
-  console.log(`  1. 200/200 thanh toán thành công: ${successKeepAlive === 200 ? 'ĐẠT ✅' : 'CHƯA ĐẠT ❌'}`);
-  console.log(`  2. Số kết nối TCP ngân hàng mở <= 20: ${connectionsUsed <= 20 ? `ĐẠT ✅ (${connectionsUsed} kết nối)` : 'CHƯA ĐẠT ❌'}`);
-  console.log(`  3. Sau nhàn rỗi 6s, vài yêu cầu tiếp theo vẫn thành công: ${extraSuccess === 3 ? 'ĐẠT ✅' : 'CHƯA ĐẠT ❌'}`);
+  console.log('DANH GIA 3 TIEU CHI:');
+  console.log(`  1. 200/200 thanh toan thanh cong: ${successKeepAlive === 200 ? 'DAT [OK]' : 'CHUA DAT [FAILED]'}`);
+  console.log(`  2. So ket noi TCP ngan hang mo <= 20: ${connectionsUsed <= 20 ? `DAT [OK] (${connectionsUsed} ket noi)` : 'CHUA DAT [FAILED]'}`);
+  console.log(`  3. Sau nhan roi 6s van thanh cong: ${extraSuccess === 3 ? 'DAT [OK]' : 'CHUA DAT [FAILED]'}`);
   console.log('================================================================\n');
 }
 

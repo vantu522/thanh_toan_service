@@ -5,14 +5,11 @@
 
 async function runSituation4() {
   console.log('================================================================');
-  console.log('TIẾN HÀNH THỰC NGHIỆM TÌNH HUỐNG 4 - LAB 3');
+  console.log('TIEN HANH THUC NGHIEM TINH HUONG 4 - LAB 3');
   console.log('================================================================\n');
 
-  // ============================================================================
-  // TEST (c): Thanh toán 25.000.000đ (Vượt hạn mức)
-  // Kết quả cần đạt: Trả 402, và ngân hàng chỉ nhận đúng 1 yêu cầu (không thử lại)
-  // ============================================================================
-  console.log('▶️ [KIỂM TRA C] THANH TOÁN VƯỢT HẠN MỨC 25.000.000đ');
+  // TEST (c): Thanh toán 25.000.000đ
+  console.log('[KIEM TRA C] THANH TOAN VUOT HAN MUC 25.000.000d');
   const statsCBefore = await fetch('http://localhost:4002/stats').then(r => r.json());
   
   const resC = await fetch('http://localhost:4001/students/1/payments', {
@@ -24,22 +21,18 @@ async function runSituation4() {
   const statsCAfter = await fetch('http://localhost:4002/stats').then(r => r.json());
   const bankRequestsCount = statsCAfter.requests - statsCBefore.requests;
 
-  console.log(`  📊 HTTP Status nhận được: ${resC.status} (Yêu cầu: 402)`);
-  console.log(`  📦 Nội dung phản hồi:`, bodyC);
-  console.log(`  🔌 Số request ngân hàng nhận được: ${bankRequestsCount} (Yêu cầu: Đúng 1 request, không retry)`);
+  console.log(`  HTTP Status nhan duoc: ${resC.status} (Yeu cau: 402)`);
+  console.log(`  Noi dung phan hoi:`, bodyC);
+  console.log(`  So request ngan hang nhan duoc: ${bankRequestsCount} (Yeu cau: Dung 1 request, khong retry)`);
   
   const testCPassed = resC.status === 402 && bankRequestsCount === 1;
-  console.log(`  👉 Đánh giá mục (c): ${testCPassed ? 'ĐẠT XUẤT SẮC ✅' : 'CHƯA ĐẠT ❌'}`);
+  console.log(`  Danh gia muc (c): ${testCPassed ? 'DAT [OK]' : 'CHUA DAT [FAILED]'}`);
 
-  // ============================================================================
-  // TEST (a) hoặc (b): Gửi 60 thanh toán lần lượt với tỷ lệ lỗi
-  // ============================================================================
-  console.log('\n▶️ [KIỂM TRA A & B] GỬI 60 THANH TOÁN LẦN LƯỢT');
-  console.log('   (Mỗi lần 1.000đ, đo số lệnh PAID, so sánh với charges & duplicates)');
+  // TEST (a) & (b): Gửi 60 thanh toán lần lượt
+  console.log('\n[KIEM TRA A & B] GUI 60 THANH TOAN LAN LUOT');
+  console.log('   (Moi lan 1.000d, do so lenh PAID, so sanh voi charges & duplicates)');
 
-  // Lấy thông tin công nợ và stats trước khi chạy
   const studentBefore = await fetch('http://localhost:4001/students/1/fees').then(r => r.json());
-  const statsStart = await fetch('http://localhost:4002/stats').then(r => r.json());
 
   let paidCount = 0;
   let pendingCount = 0;
@@ -73,25 +66,25 @@ async function runSituation4() {
   const expectedDebtReduced = paidCount * 1000;
 
   console.log('\n================================================================');
-  console.log('KẾT QUẢ THỰC NGHIỆM 60 LỆNH THANH TOÁN:');
+  console.log('KET QUA THUC NGHIEM 60 LENH THANH TOAN:');
   console.log('================================================================');
-  console.log(`  🎯 Số lệnh thành công (PAID): ${paidCount}/60 (Yêu cầu: >= 54/60)`);
-  console.log(`  ⏱️ Số lệnh không thành công trả 504 PENDING: ${pendingCount}`);
-  console.log(`  🔌 duplicates tại Mock Bank: ${statsEnd.duplicates} (Yêu cầu: duplicates = 0)`);
-  console.log(`  💰 Tiền công nợ giảm thực tế: ${actualDebtReduced.toLocaleString('vi-VN')}đ`);
-  console.log(`  💰 Tiền của các lệnh PAID: ${expectedDebtReduced.toLocaleString('vi-VN')}đ`);
-  console.log(`  ⏳ Thời gian phản hồi lâu nhất của 1 lệnh: ${maxTimePerReq}ms (Yêu cầu: <= 4500ms)`);
+  console.log(`  So lenh thanh cong (PAID): ${paidCount}/60 (Yeu cau: >= 54/60)`);
+  console.log(`  So lenh tra ve 504 PENDING: ${pendingCount}`);
+  console.log(`  duplicates tai Mock Bank: ${statsEnd.duplicates} (Yeu cau: duplicates = 0)`);
+  console.log(`  Tien cong no giam thuc te: ${actualDebtReduced.toLocaleString('vi-VN')}d`);
+  console.log(`  Tien cua cac lenh PAID: ${expectedDebtReduced.toLocaleString('vi-VN')}d`);
+  console.log(`  Thoi gian phan hoi lau nhat cua 1 lenh: ${maxTimePerReq}ms (Yeu cau: <= 4500ms)`);
 
   const criteriaPaid = paidCount >= 54;
   const criteriaDuplicates = statsEnd.duplicates === 0;
   const criteriaDebtMatch = actualDebtReduced === expectedDebtReduced;
   const criteriaTime = maxTimePerReq <= 4500;
 
-  console.log('\nĐÁNH GIÁ CÁC TIÊU CHÍ KẾT QUẢ CẦN ĐẠT:');
-  console.log(`  1. >= 54/60 thanh toán thành công: ${criteriaPaid ? 'ĐẠT ✅' : 'CHƯA ĐẠT ❌'} (${paidCount}/60)`);
-  console.log(`  2. duplicates = 0: ${criteriaDuplicates ? 'ĐẠT ✅' : 'CHƯA ĐẠT ❌'}`);
-  console.log(`  3. Công nợ chỉ giảm đúng tiền các lệnh PAID (không trừ 2 lần): ${criteriaDebtMatch ? 'ĐẠT ✅' : 'CHƯA ĐẠT ❌'}`);
-  console.log(`  4. Thời gian phản hồi luôn <= 4,5 giây: ${criteriaTime ? 'ĐẠT ✅' : 'CHƯA ĐẠT ❌'}`);
+  console.log('\nDANH GIA CAC TIEU CHI:');
+  console.log(`  1. >= 54/60 thanh toan thanh cong: ${criteriaPaid ? 'DAT [OK]' : 'CHUA DAT [FAILED]'} (${paidCount}/60)`);
+  console.log(`  2. duplicates = 0: ${criteriaDuplicates ? 'DAT [OK]' : 'CHUA DAT [FAILED]'}`);
+  console.log(`  3. Cong no chi giam dung tien cac lenh PAID: ${criteriaDebtMatch ? 'DAT [OK]' : 'CHUA DAT [FAILED]'}`);
+  console.log(`  4. Thoi gian phan hoi luon <= 4,5 giay: ${criteriaTime ? 'DAT [OK]' : 'CHUA DAT [FAILED]'}`);
   console.log('================================================================\n');
 }
 
